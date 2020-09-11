@@ -1,0 +1,504 @@
+#!/usr/bin/env python3
+import argparse
+import glob
+import json
+import os
+import sys
+
+args = None
+bbenv = None
+json_data = {}
+retval = 0
+version = '4.4.1'
+
+
+# param1: string <key>: A bitbake variable string (e.g. 'BBLAYERS')
+# return: list: Value(s) associated to 'key' in bitbake environment
+def bitbake_value_of(key):
+    key_begin = bbenv.find('\n' + key + '=')
+    value_begin = 1 + bbenv.find('"', key_begin)
+    value_end = bbenv.find('"', value_begin)
+    if key_begin == -1:
+        error_exit("Failed to find key '%s' in bitbake environment" % key)
+    elif value_begin == -1 or value_end == -1 or value_begin >= value_end:
+        error_exit("Failed to find value for key '%s' in bitbake environment" % key)
+    return bbenv[value_begin:value_end]
+
+
+# param1: string <command>: A Linux OS shell command (e.g. 'echo hello')
+# return: string: Stdout from 'command'
+def communicate(command):
+    import subprocess
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+    stdout, stderr = p.communicate()
+    if p.returncode != 0 or stderr != '':
+        error_exit("Command '%s' returned %d\nStdout was: '%s'\nStderr was: '%s'"
+                   % (command, p.returncode, stdout.strip(), stderr.strip()))
+    return stdout
+
+
+# param1: string <pn>: Recipe name (e.g. 'curl')
+# return: integer: The number of files that were not analyzed with license scanner
+def count_of_files_ignored(pn):
+    count = 0
+    if 'ignoredFiles' in json_data[pn]:
+        for key, value in json_data[pn]['ignoredFiles'].items():
+            count += len(value)
+    return count
+
+
+# param1: string <pn>: Recipe name (e.g. 'curl')
+# return: integer: The number of files that were analyzed with license scanner
+def count_of_files_scanned(pn):
+    count = 0
+    if 'scannedFiles' in json_data[pn]:
+        for key, value in json_data[pn]['scannedFiles'].items():
+            count += len(value)
+    return count
+
+
+# param1: string <message>: An informative error message string to display (e.g. 'Stack overflow')
+# return: -
+def error_exit(message):
+    if hasattr(sys.stderr, 'isatty') and sys.stderr.isatty():
+        sys.stderr.write('\x1b[1;37;41mERROR\x1b[0m: \x1b[0;31m%s\x1b[0m\n' % message)
+    else:
+        sys.stderr.write('ERROR: %s\n' % message)
+
+    if not args or args.verbose:
+        raise RuntimeError()
+    else:
+        sys.exit(1)
+
+
+# param1: 'license': A license label (e.g. 'No_license_found')
+# param2: string <pn>: Recipe name (e.g. 'curl')
+# return: list: Sorted list of source code files that are covered by 'license' (according to analysis)
+def files_with_license_in(license, pn):
+    results = []
+    if license in json_data[pn]['scannedFiles']:
+        for file in json_data[pn]['scannedFiles'][license]:
+            results.append(file)
+    return sorted(results)
+
+
+# param1: string <pn>: Recipe name (e.g. 'curl')
+# return: list: Sorted list of strings containing file paths that were not analyzed with license scanner
+def ignored_file_paths(pn):
+    results = []
+    if 'ignoredFiles' in json_data[pn]:
+        for key, value in json_data[pn]['ignoredFiles'].items():
+            for v in value:
+                results.append(v)
+    return sorted(results)
+
+
+# param1: string <pn>: Recipe name (e.g. 'curl')
+# return: list: Two-dimensional sorted list containing blacklist reason strings (up to 10 characters) and file path
+#               strings of files that were not analyzed with license scanner
+def ignored_file_reasons_and_paths(pn):
+    results = []
+    if 'ignoredFiles' in json_data[pn]:
+        for key, value in json_data[pn]['ignoredFiles'].items():
+            if key.startswith("blacklistedDirectoryNameInPath_"):
+                blackdir = key.split('_', 2)[1] if len(key.split('_', 2)[1]) <= 6 else key.split('_', 2)[1][:4] + ".."
+                results.append(['dir=' + blackdir, value])
+            elif key.startswith("blacklistedMimeType_"):
+                blackmime = key.split('_', 2)[1] if len(key.split('_', 2)[1]) <= 5 else key.split('_', 2)[1][:3] + ".."
+                results.append(['mime=' + blackmime, value])
+            elif key == "blacklistedFileName":
+                results.append(['filename',  value])
+            elif key == "blacklistedFileNamePrefix":
+                results.append(['fileprefix',  value])
+            elif key == "blacklistedFileNameSuffix":
+                results.append(['filesuffix',  value])
+            elif key == "symbolicLink":
+                results.append(['symlink',  value])
+            else:
+                error_exit("Unknown blacklist reason %s for %s" % (key, value))
+    return sorted(results)
+
+
+# param1: string <pn>: Recipe name (e.g. 'curl')
+# return: list: Two-dimensional reverse-sorted list containing number of occurences and label of each license
+def licenses_for(pn):
+    results = []
+    if 'scannedFiles' in json_data[pn]:
+        for lic in json_data[pn]['scannedFiles']:
+            count = 0
+            for file in json_data[pn]['scannedFiles'][lic]:
+                count += 1
+            results.append([count, lic])
+    return sorted(results, reverse=True)
+
+
+# param1: string <package_name>: Name of a package (e.g. 'curl-doc')
+# return: string: Name of recipe providing aforementioned package (e.g. 'curl') or None
+def map_package_to_recipe(package_name):
+    recipe_name = None
+
+    for pn in json_data:
+        # Compare against PACKAGES name, as well as 'alias name' defined in value field of respective PKG_<pkg_key>
+        for pkg_key in json_data[pn]['packageInformation']['PACKAGES']:
+            pkg_value = ''.join(json_data[pn]['packageInformation']['PKG_' + pkg_key])
+            if pkg_key == package_name or pkg_value == package_name:
+                if recipe_name is not None:
+                    error_exit("Package key/value 'PKG_%s' matched twice, first in '%s.json' then in '%s.json'" %
+                               (package_name, recipe_name, pn))
+                recipe_name = pn
+
+    if not recipe_name:
+        for pn in json_data:
+            # Catch remaining candidates which match only by recipe name
+            if package_name == pn:
+                if recipe_name is not None:
+                    error_exit("Package name '%s' matched twice, first in '%s.json' then in '%s.json'" %
+                               (package_name, recipe_name, pn))
+                recipe_name = pn
+
+    return recipe_name
+
+
+# param1: list <list>: A list to iterate
+# param2: integer <first_index>: column index base
+# param3: integer <last_index>: column index ceiling
+# param4: integer <first_line_index>: column index base on first line
+# return: None
+def print_in_column(list, first_index, last_index, first_line_index):
+    first_iteration = True
+    for i in iter(list):
+        if first_iteration:
+            first_iteration = False
+            print("%s" % i, end='')
+            if first_line_index > first_index:
+                col_index = first_line_index + len(i) + 2
+            else:
+                col_index = first_index + len(i) + 2
+            continue
+
+        new_index = col_index + len(i) + 4
+        if (new_index < last_index):
+            print(", %s" % i, end='')
+            col_index = new_index
+        else:
+            print(",\n%s%s" % (' ' * first_index, i), end='')
+            col_index = first_index + len(i) + 2
+    print('')
+
+
+# param1: string <pn>: Recipe name (e.g. 'curl')
+# return: string: value of PKGV key
+def version_for(pn):
+    return ''.join(json_data[pn]['packageInformation']['PKGV'])
+
+
+# param1: string <message>: An informative warning message string to display
+# return: -
+def warn_noexit(message):
+    if hasattr(sys.stderr, 'isatty') and sys.stderr.isatty():
+        sys.stderr.write('\x1b[1;37;43mWARNING\x1b[0m: \x1b[1;33m%s\x1b[0m\n' % message)
+    else:
+        sys.stderr.write('WARNING: %s\n' % message)
+
+
+if __name__ == '__main__':
+    version_desc = 'licscantool version %s' % version
+    parser = argparse.ArgumentParser(description=version_desc)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-i', '--image', help='path to image-specific licscan.json file, or name of image to examine.'
+                                             ' Shows information about image according to manifest and accumulated'
+                                             ' JSON-formatted licscan information. Use -v and/or -f options for more'
+                                             ' elaborate output.', nargs=1, default='')
+    group.add_argument('-p', '--package', help="list of packages to examine (end list with '--' if -p is not last "
+                                               'argument). Shows detected license coverage information for packages '
+                                               'according to JSON files. Use -v option for more elaborate output.'
+                                               '', nargs='+')
+    group.add_argument('-V', '--version', help='display program version and exit', action='store_true')
+    parser.add_argument('-f', '--full', help='with -i option, show also -p output for each package in the image after'
+                                             ' -i output. E.g. by combining -i with -f and -v options, one can'
+                                             ' generate the single most comprehensive output from this tool wrt. an'
+                                             ' image instance.', action='store_true')
+    parser.add_argument('-v', '--verbose', help='increase program verbosity', action='store_true')
+    args = parser.parse_args()
+
+    if args.full and not args.image:
+        warn_noexit('-f option has effect only when used together with -i')
+        retval = 2
+
+    if args.version:
+        print(version_desc)
+        sys.exit(0)
+
+    if os.path.isfile(''.join(args.image)):
+        image_json_file = os.path.realpath(''.join(args.image))
+    else:
+        image_json_file = None
+
+    if args.verbose and image_json_file is None:
+        print('Compiling %s%s information for %s:' %
+              ('full ' if args.image and args.full else '',
+               'image' if args.image else 'package',
+               ''.join(args.image) if args.image else ', '.join(args.package)))
+
+    # Acquire bitbake environment
+    if args.verbose:
+        if args.image and image_json_file:
+            print("Image-specific file is %s" % os.path.basename(image_json_file))
+        else:
+            print("Extracting bitbake environment with 'bitbake -e%s' ..." %
+                  ((' ' + ''.join(args.image)) if args.image else ''))
+
+    if args.image and image_json_file:
+        with open(image_json_file) as json_file:
+            json_data = json.load(json_file)
+    else:
+        bbenv = communicate('bitbake -e %s | grep ^[A-Z] | sort' % ''.join(args.image))
+
+        # Resolve json directory (i.e. scan results dir)
+        scanner = bitbake_value_of('LICSCAN_SCANNERS')
+        if len(scanner.split()) > 1:
+            error_exit('More than one scanner declared. Please update this script to work with more than one scanner.')
+        jsondir = bitbake_value_of('PKGDATA_DIR') + '/licscan/' + scanner
+        if not os.path.isdir(jsondir):
+            error_exit('Scan results directory %s does not exist' % jsondir)
+        if args.verbose:
+            print("Scan results directory is %s" % jsondir)
+
+        # Add content of .json files to a dictionary. We use filename as the key
+        prevdir = os.getcwd()
+        os.chdir(jsondir)
+        for file in sorted(glob.glob('*.json')):
+            with open(file) as json_file:
+                json_data[file[:-5]] = json.load(json_file)
+        os.chdir(prevdir)
+
+    # array of package names to print with '-p' option, or combined '-i' and '-f' options
+    pkgs_array = args.package if args.package else []
+
+    # Process user request against respective image .manifest file
+    if args.image:
+        # Resolve manifest file
+        if bbenv is not None:
+            dir = bitbake_value_of('DEPLOY_DIR_IMAGE')
+            link = bitbake_value_of('IMAGE_LINK_NAME') + '.manifest'
+            manifest = dir + '/' + link
+        else:
+            manifest = os.path.realpath(image_json_file.replace('.licscan.json', '.manifest'))
+
+        if not os.path.isfile(manifest):
+            if bbenv is not None:
+                error_exit("Manifest file %s not found (have you done 'bitbake %s' yet?)" %
+                           (manifest, ''.join(args.image)))
+            else:
+                error_exit("Cannot use %s without %s" % (image_json_file, manifest))
+        elif bbenv is not None and not os.path.islink(manifest):
+            error_exit('Manifest file %s found but for some reason it is not a symbolic link?' % manifest)
+        manifest = os.path.realpath(manifest)
+        if args.verbose:
+            print("Manifest file is %s" % (os.path.basename(manifest) if image_json_file else "file://" + manifest))
+            print('')
+
+        with open(manifest) as fp:
+            output = []
+            label_pn = 'Recipe name'
+            label_pkg = 'Package'
+            label_pkgv = 'Version'
+            label_recipelics = 'Recipe-based SPDX license'
+            label_scannedlics = 'Scanned licenses (top 3)'
+            width_max_pn = len(label_pn)
+            width_max_pkg = len(label_pkg)
+            width_max_pkgv = len(label_pkgv)
+            width_max_recipelics = len(label_recipelics)
+            width_max_scannedlics = len(label_scannedlics)
+
+            # Iterate image .manifest file one line at a time, and look for recipe name/version match in .json
+            # files under LICSCAN_DEPLOY_DIR/
+            for count, line in enumerate(fp):
+                pn = None
+                recipelics = None
+                scannedlics = None
+                pkg, pkgarch, pkgv = format(line).split()
+                if args.full:
+                    pkgs_array.append(pkg)
+
+                # Resolve recipe name for package
+                pn = map_package_to_recipe(pkg)
+
+                if pn:
+                    if 'SPDXMapped_LICENSE_' + pkg in json_data[pn]['packageInformation']:
+                        recipelics = ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE_' + pkg])
+                    elif 'LICENSE_' + pkg in json_data[pn]['packageInformation']:
+                        recipelics = ''.join(json_data[pn]['packageInformation']['LICENSE_' + pkg])
+                    elif 'SPDXMapped_LICENSE' in json_data[pn]['packageInformation']:
+                        recipelics = ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE'])
+                    else:
+                        recipelics = ''.join(json_data[pn]['packageInformation']['LICENSE'])
+
+                    scannedlics = ""
+                    for count, license in licenses_for(pn):
+                        if license == 'No_license_found':
+                            continue
+                        if scannedlics:
+                            scannedlics += "  "
+                        scannedlics += "%s" % license
+                        if scannedlics.count('  ') >= 2:
+                            break
+                    if not scannedlics:
+                        scannedlics = '-'
+
+                    # In image manifest, package version is distorted (presumably due to RPM hack, which changes
+                    # '-' characters to '+' -- see meta/classes/package_rpm.bbclass), so consider that also here.
+                    json_pkgv = version_for(pn)
+                    if json_pkgv != pkgv and json_pkgv.replace('-', '+') != pkgv:
+                        error_exit('mismatching package version for %s (from %s recipe) -- image manifest has %s, '
+                                   'and %s.json has %s' % (pkg, pn, pkgv, pn, json_pkgv))
+                    licfile = pn + '.json'
+                    if args.verbose:
+                        if bbenv is not None:
+                            licfile = 'file://' + jsondir + '/' + licfile
+                        else:
+                            licfile = 'file://' + ''.join(args.image)
+                else:
+                    # No matching scan result json file found, print a warning.
+                    warn_noexit("Failed to find matching json entry for package '%s'" % pkg)
+                    retval = 3
+                    continue
+
+                width_max_recipelics = (len(recipelics) if len(recipelics) > width_max_recipelics else
+                                        width_max_recipelics)
+                width_max_scannedlics = (len(scannedlics) if len(scannedlics) > width_max_scannedlics else
+                                         width_max_scannedlics)
+                width_max_pn = len(pn) if len(pn) > width_max_pn else width_max_pn
+                width_max_pkg = len(pkg) if len(pkg) > width_max_pkg else width_max_pkg
+                width_max_pkgv = len(json_pkgv) if len(json_pkgv) > width_max_pkgv else width_max_pkgv
+                output.append([pkg, json_pkgv, pn, recipelics, scannedlics])
+
+            print('%s  %s  %s  %s  %s' % (label_pkg.ljust(width_max_pkg),
+                                          label_pkgv.ljust(width_max_pkgv),
+                                          label_pn.ljust(width_max_pn),
+                                          label_recipelics.ljust(width_max_recipelics),
+                                          label_scannedlics.ljust(width_max_scannedlics)))
+            print('%s  %s  %s  %s  %s' % (('-' * len(label_pkg)).ljust(width_max_pkg),
+                                          ('-' * len(label_pkgv)).ljust(width_max_pkgv),
+                                          ('-' * len(label_pn)).ljust(width_max_pn),
+                                          ('-' * len(label_recipelics)).ljust(width_max_recipelics),
+                                          ('-' * len(label_scannedlics)).ljust(width_max_scannedlics)))
+            for i in iter(output):
+                print('%s  %s  %s  %s  %s' % (i[0].ljust(width_max_pkg),
+                                              i[1].ljust(width_max_pkgv),
+                                              i[2].ljust(width_max_pn),
+                                              i[3].ljust(width_max_recipelics),
+                                              i[4].ljust(width_max_scannedlics)))
+        if pkgs_array and not args.verbose:
+            print('')
+
+    # Process user request against respective generated .json file(s)
+    if pkgs_array:
+        pn_pkg_map = []
+        recipes = []
+        for pkg in pkgs_array:
+            pn = map_package_to_recipe(pkg)
+            if not pn:
+                error_exit('No matching scan result json file found for package %s' % pkg)
+            pn_pkg_map.append([pn, pkg])
+            if pn not in recipes:
+                recipes.append(pn)
+
+        recipes_count = 0
+        for pn in recipes:
+            recipes_count += 1
+            if recipes_count > 1 or args.verbose:
+                print('')
+            pkgs = []
+            for key, value in pn_pkg_map:
+                if pn == key:
+                    pkgs.append(value)
+                    print('%s:' % value)
+
+            print('')
+            output = []
+            label_count = 'Count'
+            label_license = 'License'
+            label_percent = 'Coverage'
+            width_max_count = len(label_count)
+            width_max_license = len(label_license)
+            width_max_percent = len(label_percent)
+            try:
+                columns = int(os.environ['COLUMNS'])
+            except KeyError:
+                rows, columns = os.popen('stty size', 'r').read().split()
+
+            # grab statistics
+            recipe_licenses = licenses_for(pn)
+            scanned_file_count = count_of_files_scanned(pn)
+            ignored_file_count = count_of_files_ignored(pn)
+            total_file_count = scanned_file_count + ignored_file_count
+            if total_file_count > 0:
+                scanned_file_ratio = scanned_file_count / total_file_count
+                scanned_file_percent = scanned_file_count / total_file_count * 100
+                ignored_file_percent = 100 - scanned_file_percent
+
+            # display statistics
+            print('  Recipe version             : %s' % version_for(pn))
+            print('  Recipe providing package   : %s' % pn)
+            print('  Recipe summary information : %s' % ''.join(json_data[pn]['packageInformation']['SUMMARY']))
+            print('  Recipe SPDX license        : ', end='')
+            if 'SPDXMapped_LICENSE' in json_data[pn]['packageInformation']:
+                print('%s' % ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE']))
+            else:
+                print('%s' % ''.join(json_data[pn]['packageInformation']['LICENSE']))
+            for pkg in pkgs:
+                # Print package specific license(s), if found, for each studied package. Prefer SPDX mapped format.
+                row_lbl = '  %-27s: ' % (pkg + ' SPDX license')
+                if 'SPDXMapped_LICENSE_' + pkg in json_data[pn]['packageInformation']:
+                    print('%s%s' % (row_lbl, ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE_' + pkg])))
+                elif 'LICENSE_' + pkg in json_data[pn]['packageInformation']:
+                    print('%s' % (row_lbl, ''.join(json_data[pn]['packageInformation']['LICENSE_' + pkg])))
+            print('  License scan results file  : %s' % (os.path.basename(image_json_file) if image_json_file
+                                                         is not None else "file://" + jsondir + '/' + pn + '.json'))
+            print('  Scanned vs. ignored files  : %u vs. %u' % (scanned_file_count, ignored_file_count))
+            print('  Scanned vs. ignored ratio  : ', end='')
+            if total_file_count > 0:
+                print('%.2f (%.0f%% scanned, %.0f%% ignored)' %
+                      (scanned_file_ratio, scanned_file_percent, ignored_file_percent))
+            else:
+                print('no files scanned!')
+
+            if ignored_file_count > 0:
+                for reason, list in ignored_file_reasons_and_paths(pn):
+                    label_ignored = '  Ignored files %-10s : ' % ('(' + reason + ')' + ' ' * (10 - len(reason)))
+                    print('%s' % label_ignored, end='')
+                    print_in_column(list, len(label_ignored), int(columns), 0)
+
+            print('  ')
+
+            for (count, license) in recipe_licenses:
+                percent = '%5.1f%%' % (count / scanned_file_count * 100)
+                output.append([percent, str(count), license, files_with_license_in(license, pn)])
+                width_max_count = len(str(count)) if len(str(count)) > width_max_count else width_max_count
+                # This assumes multi-licensed files use comma as separator:
+                lics = license.split(',')
+                for lic in lics:
+                    width_max_license = len(lic) if len(lic) > width_max_license else width_max_license
+                width_max_percent = len(percent) if len(percent) > width_max_percent else width_max_percent
+
+            print('  %s  %s  %s' % (label_percent.ljust(width_max_percent),
+                                    label_count.ljust(width_max_count),
+                                    label_license.ljust(width_max_license)), end='')
+            print('  Scanned files')
+            print('  %s  %s  %s' % (('-' * len(label_percent)).ljust(width_max_percent),
+                                    ('-' * len(label_count)).ljust(width_max_count),
+                                    ('-' * len(label_license)).ljust(width_max_license)), end='')
+            print('  -------------')
+            for i in iter(output):
+                print('  %s  %s  %s' % (i[0].rjust(width_max_percent),
+                                        i[1].rjust(width_max_count),
+                                        i[2].ljust(width_max_license)), end='')
+                print('  ', end='')
+                first_index = (len('  ') + width_max_percent + len('  ') + width_max_count + len('  ') +
+                               width_max_license + len('  '))
+                lic_index = (len('  ') + width_max_percent + len('  ') + width_max_count + len('  ') +
+                             len(i[2]) + len('  '))
+                print_in_column(i[3], first_index, int(columns), lic_index)
+
+    sys.exit(retval)
