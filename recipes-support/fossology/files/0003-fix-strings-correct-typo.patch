@@ -1,0 +1,34 @@
+From de64361f765a2d125a20f7a1c5c9be8f167114eb Mon Sep 17 00:00:00 2001
+From: Tieg Zaharia <tieg@tidelift.com>
+Date: Wed, 17 Apr 2019 14:32:46 -0400
+Subject: [PATCH] fix(strings): correct typo
+
+---
+ src/nomos/agent/STRINGS.in | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/nomos/agent/STRINGS.in b/src/nomos/agent/STRINGS.in
+index ce6f5de16..f0757e7c3 100755
+--- a/src/nomos/agent/STRINGS.in
++++ b/src/nomos/agent/STRINGS.in
+@@ -6270,7 +6270,7 @@ k
+ #####
+ %ENTRY% _LT_SEE_COPYING_LICENSE_1
+ %KEY% =NULL=
+-%STR% "see =FEW= (copyright notices?|license|legal notices?|copying|copyright\.?txt|license\.?txt|readme\.?txt|file) =FEW= (for|with|in|at) =FEW= (details|licens(e|ing)|distribut|information|foder|directory|https?|ftp)"
++%STR% "see =FEW= (copyright notices?|license|legal notices?|copying|copyright\.?txt|license\.?txt|readme\.?txt|file) =FEW= (for|with|in|at) =FEW= (details|licens(e|ing)|distribut|information|folder|directory|https?|ftp)"
+ #
+ %ENTRY% _LT_SEE_COPYING_LICENSE_2
+ %KEY% =NULL=
+@@ -6278,7 +6278,7 @@ k
+ #
+ %ENTRY% _LT_SEE_URL
+ %KEY% =NULL=
+-%STR% "see (https?|ftp) =SOME= (for|with|in) =FEW= (details|license|distribut|information|foder|directory)"
++%STR% "see (https?|ftp) =SOME= (for|with|in) =FEW= (details|license|distribut|information|folder|directory)"
+ #
+ %ENTRY% _LT_SEE_URL_ref1
+ %KEY% =NULL=
+-- 
+2.20.1
+

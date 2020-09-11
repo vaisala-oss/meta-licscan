@@ -1,0 +1,39 @@
+From 0c6d6474194c4cc90e19ed749dd3553e5c299b88 Mon Sep 17 00:00:00 2001
+From: rlintu <raino.lintulampi@bittium.com>
+Date: Fri, 26 Apr 2019 10:53:56 +0300
+Subject: [PATCH] fix(nomos): nomos crash (#1337)
+
+---
+ src/nomos/agent/nomos.h       | 2 +-
+ src/nomos/agent/nomos_regex.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/nomos/agent/nomos.h b/src/nomos/agent/nomos.h
+index c6a00a383..87f6c1047 100644
+--- a/src/nomos/agent/nomos.h
++++ b/src/nomos/agent/nomos.h
+@@ -132,7 +132,7 @@
+ #define	PROC_TRACE
+ #endif	/* PROC_TRACE_SWITCH */
+ 
+-#define	myBUFSIZ	2048      ///< Buffer max length
++#define	myBUFSIZ	4096      ///< Buffer max length
+ #define	MAX_RENAME	1000    ///< Max rename length
+ #define TEMP_FILE_LEN 100   ///< Max temp file length
+ 
+diff --git a/src/nomos/agent/nomos_regex.c b/src/nomos/agent/nomos_regex.c
+index 0d8b44415..b7dbb0f7f 100644
+--- a/src/nomos/agent/nomos_regex.c
++++ b/src/nomos/agent/nomos_regex.c
+@@ -447,7 +447,7 @@ int idxGrep_base(int index, char *data, int flags, int mode)
+     else if (cur.currentLicenceIndex > -1 ) {
+        rememberWhatWeFound( getLicenceAndMatchPositions(cur.theMatches, cur.currentLicenceIndex )->matchPositions , allmatches, index, mode);
+     }
+-
++    g_array_free(allmatches, 1);
+     CALL_IF_DEBUG_MODE(printf("Bye!\n");)
+  }
+ 
+-- 
+2.20.1
+
