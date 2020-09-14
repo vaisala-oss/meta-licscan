@@ -465,9 +465,9 @@ python generate_image_licscan_files() {
 
     # Finally create analysis file too
     import subprocess
-    command = d.getVar('COREBASE') + '/meta-licscan/scripts/licscantool -v -f -i ' + results_file
+    command = 'licscantool -v -f -i ' + results_file
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                         shell=True, universal_newlines=True, env={"COLUMNS": "240"})
+                         shell=True, universal_newlines=True, env={"COLUMNS": "240", "PATH": d.getVar('PATH')})
     stdout, stderr = p.communicate()
     if p.returncode != 0 or stderr != '':
         bb.fatal("Command '%s' returned %d\nStdout was: '%s'\nStderr was: '%s'"
