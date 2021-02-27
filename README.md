@@ -6,7 +6,7 @@ Please see the corresponding sections below for details.
 ### Dependencies
 
 URI: [git://git.yoctoproject.org/poky](https://git.yoctoproject.org/cgit/cgit.cgi/poky)<br>
-branch: master|dunfell|zeus|warrior|thud
+branch: warrior
 
 ### Contributing
 
