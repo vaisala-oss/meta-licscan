@@ -24,6 +24,9 @@ SRC_URI = "\
     file://0006-fix-nomos-segfault-for-large-offset-value.patch;striplevel=4 \
     file://0007-fix-nomos-CC-BY-SA-identification.patch;striplevel=4 \
     file://0008-fix-Nomos-Added-a-new-License-signature.patch;striplevel=4 \
+    file://0009-feat-nomos-Apache-detection.patch;striplevel=4 \
+    file://0010-feat-nomos-add-new-license-intel-binary.patch;striplevel=4 \
+    file://0011-Nomos-New-licenses-from-SPDX-3.10-added.-Lots-of-oth.patch;striplevel=4 \
 "
 
 S = "${WORKDIR}/agent"
