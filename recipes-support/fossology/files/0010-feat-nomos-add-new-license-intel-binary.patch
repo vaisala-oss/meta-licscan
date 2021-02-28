@@ -1,0 +1,55 @@
+From a9ce7e738b187523844568ccbf53ee77181c1602 Mon Sep 17 00:00:00 2001
+From: Anupam Ghosh <anupam.ghosh@siemens.com>
+Date: Mon, 5 Oct 2020 16:09:25 +0530
+Subject: [PATCH] feat(nomos): add new license intel-binary
+
+Signed-off-by: Anupam Ghosh <anupam.ghosh@siemens.com>
+---
+
+diff --git a/src/nomos/agent/STRINGS.in b/src/nomos/agent/STRINGS.in
+index a94cb33ce..bd16db232 100755
+--- a/src/nomos/agent/STRINGS.in
++++ b/src/nomos/agent/STRINGS.in
+@@ -3402,6 +3402,10 @@
+ %KEY% "licen[cs]"
+ %STR% "Intel grants free of charge to any person =FEW= obtaining a copy of the source code =SOME= irrevocable perpetual worldwide license under Intel.s copyrights (in|for) the (base )?code distributed =FEW= by Intel =FEW= to copy make derivatives distribute use and display any portion of the (covered )?code in any form with the right to sublicense such rights"
+ #
++%ENTRY% _LT_INTEL_BINARY
++%KEY% "permi[st]"
++%STR% "Neither the name of Intel Corporation nor the names of its suppliers may be used to endorse or promote products derived from this software without specific prior written permission"
++#
+ %ENTRY% _LT_INTERLINK_EULA
+ %KEY% "legal"
+ %STR% "this end[ -]user licen[cs]e agreement eula is a legal agreement between you either an individual or an entity and interlink networks inc for the product identified above"
+@@ -11791,6 +11795,14 @@ k
+ %KEY% =NULL=
+ %STR% "intel corp"
+ #
++%ENTRY% _TEXT_INTELCORPBINARY
++%KEY% =NULL=
++%STR% "binary form"
++#
++%ENTRY% _TEXT_NOMODIFICATION
++%KEY% =NULL=
++%STR% "without modification"
++#
+ %ENTRY% _TEXT_JPNIC
+ %KEY% =NULL=
+ %STR% "jpnic"
+diff --git a/src/nomos/agent/parse.c b/src/nomos/agent/parse.c
+index be9ed7b23..ed4471ec2 100755
+--- a/src/nomos/agent/parse.c
++++ b/src/nomos/agent/parse.c
+@@ -3165,6 +3165,9 @@ char *parseLicenses(char *filetext, int size, scanres_t *scp,
+     else if (INFILE(_LT_INTEL_RESTRICT)) {
+       INTERESTING("Intel.RESTRICTED");
+     }
++    else if (INFILE(_LT_INTEL_BINARY) && HASTEXT(_TEXT_INTELCORPBINARY, 0) && HASTEXT(_TEXT_NOMODIFICATION, 0)) {
++      INTERESTING("Intel-Binary");
++    }
+   }
+   else if (INFILE(_LT_INTEL_5)) {
+     INTERESTING(lDebug ? "CPL(Intel)" : "CPL");
+-- 
+2.20.1
+
