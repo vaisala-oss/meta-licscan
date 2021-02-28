@@ -1,0 +1,31 @@
+From 42ffc492fa8bc55845a168168dd04969afd772dd Mon Sep 17 00:00:00 2001
+From: Gaurav Mishra <mishra.gaurav@siemens.com>
+Date: Wed, 2 Sep 2020 16:12:19 +0530
+Subject: [PATCH] feat(nomos): Apache detection
+
+If the source contain words Apache =SOME= license and not license =SOME=
+Apache, nomos fails to detect it.
+
+Additional check for such cases added in parse.c with test file
+Apache-2.0-nourl.txt (just removal of url made nomos fail in detecting
+actual license text).
+
+Signed-off-by: Gaurav Mishra <mishra.gaurav@siemens.com>
+---
+
+diff --git a/src/nomos/agent/parse.c b/src/nomos/agent/parse.c
+index 6c8b5f9f7..be9ed7b23 100755
+--- a/src/nomos/agent/parse.c
++++ b/src/nomos/agent/parse.c
+@@ -565,7 +565,7 @@ char *parseLicenses(char *filetext, int size, scanres_t *scp,
+   /*
+    * Check Apache licenses before BSD
+    */
+-  if (HASTEXT(_PHR_Apache_ref0, REG_EXTENDED) || INFILE(_PHR_Apache_ref7)) {
++  if (HASTEXT(_PHR_Apache_ref0, REG_EXTENDED) || INFILE(_PHR_Apache_ref7) || INFILE(_TITLE_Apache)) {
+     cp = ASLVERS();
+     INTERESTING(cp);
+   }
+-- 
+2.20.1
+
