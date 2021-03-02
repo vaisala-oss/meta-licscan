@@ -167,6 +167,12 @@ def map_package_to_recipe(package_name):
 def print_in_column(list, first_index, last_index, first_line_index):
     first_iteration = True
     for i in iter(list):
+        if not any(word in sys.stdout.encoding.lower() for word in ['utf8', 'utf-8']):
+            try:
+                i.encode('ascii')
+            except UnicodeEncodeError:
+                i = i.encode('unicode-escape').decode('ascii')
+
         if first_iteration:
             first_iteration = False
             print("%s" % i, end='')
