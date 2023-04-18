@@ -16,7 +16,7 @@ SRCREV = "45e65419e11f229cd21985c256aa7f9959a52e30"
 PV = "3.4.0+git${SRCPV}"
 
 SRC_URI = "\
-    git://github.com/fossology/fossology.git;branch=master;subpath=src/nomos/agent \
+    git://github.com/fossology/fossology.git;branch=master;subpath=src/nomos/agent;protocol=https \
     file://0001-Makefile-sa-relocate-makefile-conf.patch \
     file://0003-fix-strings-correct-typo.patch;striplevel=4 \
     file://0004-fix-nomos-nomos-crash-1337.patch;striplevel=4 \
