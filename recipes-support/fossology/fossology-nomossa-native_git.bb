@@ -1,7 +1,7 @@
 SUMMARY = "Fossology's stand-alone nomos license scanner"
 HOMEPAGE = "https://github.com/fossology/fossology"
 SECTION = "console/utils"
-LICENSE = "GPL-2.0"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://GenCodeCopyright;md5=7296ec131dbd040718b64fb843d63048"
 DEPENDS = "\
     coreutils-native \
