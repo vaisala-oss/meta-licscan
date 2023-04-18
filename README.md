@@ -70,8 +70,8 @@ This can be achieved by tuning variables which have base declaration in beginnin
 
 For example, to avoid altogether analyzing huge source code trees of Linux kernel and GNU C Library, respectively, one can add following lines to `<BUILDDIR>`/conf/local.conf file:
 
-    LICSCAN_SKIP_INHERIT_append = " kernel"
-    LICSCAN_SKIP_PN_append = " glibc glibc-locale glibc-mtrace glibc-scripts"
+    LICSCAN_SKIP_INHERIT:append = " kernel"
+    LICSCAN_SKIP_PN:append = " glibc glibc-locale glibc-mtrace glibc-scripts"
 
 ### Scanning only specific recipe(s)
 

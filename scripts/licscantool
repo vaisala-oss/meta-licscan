@@ -138,12 +138,12 @@ def map_package_to_recipe(package_name):
     recipe_name = None
 
     for pn in json_data:
-        # Compare against PACKAGES name, as well as 'alias name' defined in value field of respective PKG_<pkg_key>
+        # Compare against PACKAGES name, as well as 'alias name' defined in value field of respective PKG:<pkg_key>
         for pkg_key in json_data[pn]['packageInformation']['PACKAGES']:
-            pkg_value = ''.join(json_data[pn]['packageInformation']['PKG_' + pkg_key])
+            pkg_value = ''.join(json_data[pn]['packageInformation']['PKG:' + pkg_key])
             if pkg_key == package_name or pkg_value == package_name:
                 if recipe_name is not None:
-                    error_exit("Package key/value 'PKG_%s' matched twice, first in '%s.json' then in '%s.json'" %
+                    error_exit("Package key/value 'PKG:%s' matched twice, first in '%s.json' then in '%s.json'" %
                                (package_name, recipe_name, pn))
                 recipe_name = pn
 
@@ -325,10 +325,10 @@ if __name__ == '__main__':
                 pn = map_package_to_recipe(pkg)
 
                 if pn:
-                    if 'SPDXMapped_LICENSE_' + pkg in json_data[pn]['packageInformation']:
-                        recipelics = ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE_' + pkg])
-                    elif 'LICENSE_' + pkg in json_data[pn]['packageInformation']:
-                        recipelics = ''.join(json_data[pn]['packageInformation']['LICENSE_' + pkg])
+                    if 'SPDXMapped_LICENSE:' + pkg in json_data[pn]['packageInformation']:
+                        recipelics = ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE:' + pkg])
+                    elif 'LICENSE:' + pkg in json_data[pn]['packageInformation']:
+                        recipelics = ''.join(json_data[pn]['packageInformation']['LICENSE:' + pkg])
                     elif 'SPDXMapped_LICENSE' in json_data[pn]['packageInformation']:
                         recipelics = ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE'])
                     else:
@@ -450,10 +450,10 @@ if __name__ == '__main__':
             for pkg in pkgs:
                 # Print package specific license(s), if found, for each studied package. Prefer SPDX mapped format.
                 row_lbl = '  %-27s: ' % (pkg + ' SPDX license')
-                if 'SPDXMapped_LICENSE_' + pkg in json_data[pn]['packageInformation']:
-                    print('%s%s' % (row_lbl, ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE_' + pkg])))
-                elif 'LICENSE_' + pkg in json_data[pn]['packageInformation']:
-                    print('%s' % (row_lbl, ''.join(json_data[pn]['packageInformation']['LICENSE_' + pkg])))
+                if 'SPDXMapped_LICENSE:' + pkg in json_data[pn]['packageInformation']:
+                    print('%s%s' % (row_lbl, ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE:' + pkg])))
+                elif 'LICENSE:' + pkg in json_data[pn]['packageInformation']:
+                    print('%s' % (row_lbl, ''.join(json_data[pn]['packageInformation']['LICENSE:' + pkg])))
             print('  License scan results file  : %s' % (os.path.basename(image_json_file) if image_json_file
                                                          is not None else "file://" + jsondir + '/' + pn + '.json'))
             print('  Scanned vs. ignored files  : %u vs. %u' % (scanned_file_count, ignored_file_count))

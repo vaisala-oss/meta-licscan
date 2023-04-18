@@ -35,9 +35,9 @@ inherit native
 
 EXTRA_OEMAKE = "-f Makefile.sa"
 
-CC_append = " ${BUILD_LDFLAGS}"
+CC:append = " ${BUILD_LDFLAGS}"
 
-do_configure_prepend() {
+do_configure:prepend() {
     printf 'DEFS = -DVERSION_S=\\"%s\\" -DCOMMIT_HASH_S=\\"%s\\"' \
         "$(printf '%s' ${PV} | awk -F'+' '{ print $1 }')" \
         "$(git rev-parse --short ${SRCREV})" \

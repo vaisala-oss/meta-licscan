@@ -283,7 +283,7 @@ python do_licscan() {
 
 # Finalize json creation at the end of do_package() as there are internal Yocto variables which are resolved only until
 # this context has been reached, such as PACKAGES (particularly with recipes resorting to PACKAGES_DYNAMIC mechanism),
-# PKGV (get_srcrev() puts "AUTOINC+" into return value instead of incremental revision value) and 'PKG_%s' package
+# PKGV (get_srcrev() puts "AUTOINC+" into return value instead of incremental revision value) and 'PKG:%s' package
 # mappings
 python emit_pkgdata_licscan() {
     import json
@@ -305,8 +305,8 @@ python emit_pkgdata_licscan() {
             add_to_dict(d, dict_root, 'packageInformation', bbvar, d.getVar(bbvar))
         for key in d.keys():
             # Add sets of keys recognizable via specific characters in beginning of key name
-            if ((key.startswith('LICENSE_') and key[8].islower()) or
-                (key.startswith('PKG_') and key[4].islower()) or
+            if ((key.startswith('LICENSE:') and key[8].islower()) or
+                (key.startswith('PKG:') and key[4].islower()) or
                 key.startswith('SRCREV')):
                     add_to_dict(d, dict_root, 'packageInformation', key, d.getVar(key))
             # Add multi-valued keys so that each value has own entry
@@ -322,7 +322,7 @@ python emit_pkgdata_licscan() {
         # differs from value of recipe's respective LICENSE* variable.
         lic_keys = []
         for key in dict_root['packageInformation']:
-            if key == 'LICENSE' or (key.startswith('LICENSE_') and key[8].islower()):
+            if key == 'LICENSE' or (key.startswith('LICENSE:') and key[8].islower()):
                 lic_keys.append(key)
 
         for key in lic_keys:
@@ -420,12 +420,12 @@ python generate_image_licscan_files() {
             # Map package name to a recipe
             recipe_name = None
             for pn in json_data_in:
-                # Compare against PACKAGES names as well as respective PKG_<pkg_key> values
+                # Compare against PACKAGES names as well as respective PKG:<pkg_key> values
                 for pkg_key in json_data_in[pn]['packageInformation']['PACKAGES']:
-                    pkg_value = ''.join(json_data_in[pn]['packageInformation']['PKG_' + pkg_key])
+                    pkg_value = ''.join(json_data_in[pn]['packageInformation']['PKG:' + pkg_key])
                     if pkg_key == package_name or pkg_value == package_name:
                         if recipe_name is not None:
-                            bb.fatal("Package key/value 'PKG_%s' matched twice, first in '%s.json' then in '%s.json'" %
+                            bb.fatal("Package key/value 'PKG:%s' matched twice, first in '%s.json' then in '%s.json'" %
                                      (package_name, recipe_name, pn))
                         recipe_name = pn
 
@@ -483,4 +483,4 @@ python generate_image_licscan_files() {
         os.remove(licscantool_link)
     os.symlink(os.path.basename(licscantool_output), licscantool_link)
 }
-IMAGE_POSTPROCESS_COMMAND_append = " generate_image_licscan_files ;"
+IMAGE_POSTPROCESS_COMMAND:append = " generate_image_licscan_files ;"
