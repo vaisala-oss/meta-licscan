@@ -1,0 +1,49 @@
+From 44acd20295a7f62105c9546092a65c0595b74317 Mon Sep 17 00:00:00 2001
+From: Gaurav Mishra <mishra.gaurav@siemens.com>
+Date: Thu, 23 Dec 2021 11:24:34 +0530
+Subject: [PATCH] feat(nomos): New see-url pattern
+
+Added new pattern `_LT_SEE_URL_ref2` to identify strings using following
+regex:
+`licen[cs]e.{0,30}(https?|ftp).{0,60}\/licen[cs]es?`
+
+It will match string
+License: https://github.com/my-project/LICENSE
+
+Signed-off-by: Gaurav Mishra <mishra.gaurav@siemens.com>
+---
+ src/nomos/agent/STRINGS.in | 4 ++++
+ src/nomos/agent/parse.c    | 2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/nomos/agent/STRINGS.in b/src/nomos/agent/STRINGS.in
+index 320ad725a..d7f6d0803 100755
+--- a/src/nomos/agent/STRINGS.in
++++ b/src/nomos/agent/STRINGS.in
+@@ -6288,6 +6288,10 @@ k
+ %KEY% =NULL=
+ %STR% "(org|com|net|cn|de)\.?\/licenses?"
+ #
++%ENTRY% _LT_SEE_URL_ref2
++%KEY% =NULL=
++%STR% "licen[cs]e =FEW= (https?|ftp) =SOME= \/licen[cs]es?"
++#
+ %ENTRY% _LT_SEE_COPYING_1
+ %KEY% "licen[cs]"
+ %STR% "under th(e|e terms of the) licen[cs]e (contained|listed|described|set (out|forth)|given|found) in the (file =FEW= \<copying\>|\<copying\> file)"
+diff --git a/src/nomos/agent/parse.c b/src/nomos/agent/parse.c
+index 80bba7871..09b2f2575 100755
+--- a/src/nomos/agent/parse.c
++++ b/src/nomos/agent/parse.c
+@@ -9903,7 +9903,7 @@ void checkFileReferences(char *filetext, int size, int score, int kwbm,
+   if(HASTEXT(_LT_SEE_COPYING_LICENSE_1, REG_EXTENDED) || HASTEXT(_LT_SEE_COPYING_LICENSE_2, REG_EXTENDED)) {
+     INTERESTING("See-file");
+   }
+-  else if (HASTEXT(_LT_SEE_URL, REG_EXTENDED) || HASTEXT(_LT_SEE_URL_ref1, REG_EXTENDED)) {
++  else if (HASTEXT(_LT_SEE_URL, REG_EXTENDED) || HASTEXT(_LT_SEE_URL_ref1, REG_EXTENDED) || HASTEXT(_LT_SEE_URL_ref2, REG_EXTENDED)) {
+     INTERESTING("See-URL");
+   }
+   return;
+-- 
+2.39.2
+

@@ -25,8 +25,16 @@ SRC_URI = "\
     file://0007-fix-nomos-CC-BY-SA-identification.patch;striplevel=4 \
     file://0008-fix-Nomos-Added-a-new-License-signature.patch;striplevel=4 \
     file://0009-feat-nomos-Apache-detection.patch;striplevel=4 \
-    file://0010-feat-nomos-add-new-license-intel-binary.patch;striplevel=4 \
-    file://0011-Nomos-New-licenses-from-SPDX-3.10-added.-Lots-of-oth.patch;striplevel=4 \
+    file://0010-fix-gcc-10-Fix-errors-and-warnings.patch;striplevel=4 \
+    file://0011-feat-nomos-add-new-license-intel-binary.patch;striplevel=4 \
+    file://0012-Nomos-New-licenses-from-SPDX-3.10-added.-Lots-of-oth.patch;striplevel=4 \
+    file://0013-fix-nomos-improved-nomos-MPL-2.0-detection.patch;striplevel=4 \
+    file://0014-feat-nomos-New-see-url-pattern.patch;striplevel=4 \
+    file://0015-feat-nomos-See-file-regex-to-include-view.patch;striplevel=4 \
+    file://0016-feat-nomos-add-BSD-4-Clauset-Shortened-license.patch;striplevel=4 \
+    file://0017-fix-nomos-Improved-nomos-GPL-detection.patch;striplevel=4 \
+    file://0018-ix-make-Fix-warnings-in-make-for-Ubuntu-20.04.2-LTS.patch;striplevel=4 \
+    file://0019-feat-nomos-update-SPDX-license-shortnames.patch;striplevel=4 \
 "
 
 S = "${WORKDIR}/agent"

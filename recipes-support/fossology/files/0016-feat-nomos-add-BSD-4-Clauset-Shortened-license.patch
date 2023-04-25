@@ -1,0 +1,65 @@
+From b816960547251eae88b9450e0079f114b7119de7 Mon Sep 17 00:00:00 2001
+From: SvetaInChina <Huaying.Liu@mediatek.com>
+Date: Thu, 10 Mar 2022 20:14:02 +0800
+Subject: [PATCH] feat(nomos): add 'BSD-4-Clauset-Shortened' license
+
+---
+ src/nomos/agent/STRINGS.in | 14 +++++++++++++-
+ src/nomos/agent/parse.c    |  3 +++
+ 2 files changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/src/nomos/agent/STRINGS.in b/src/nomos/agent/STRINGS.in
+index 864b7821c..1ac4318c5 100755
+--- a/src/nomos/agent/STRINGS.in
++++ b/src/nomos/agent/STRINGS.in
+@@ -1034,6 +1034,10 @@
+ %KEY% "permi[st]"
+ %STR% "redistribution and use in source and binary forms with or without modification are permitted subject to the limitations in the disclaimer below"
+ #
++%ENTRY% _LT_BSD_SHORTENED_CLAUSE_0
++%KEY% "permi[st]"
++%STR% "redistribution and use in source and binary forms with or without modification are permitted provided that"
++#
+ %ENTRY% _LT_BSD_CLAUSE_1
+ %KEY% "copyright"
+ %STR% "redistributions? of source code must retain the (above |original author.s )?copyright notice (unmodified )?this list of conditions and the following disclaimer"
+@@ -1042,13 +1046,21 @@
+ %KEY% "copyright"
+ %STR% "redistributions? of source code must retain the above copyright notice (unmodified )?this list of conditions and the following disclaimer this software is provided"
+ #
++%ENTRY% _LT_BSD_SHORTENED_CLAUSE_1
++%KEY% "copyright"
++%STR% "source code distributions retain the above copyright notice and this paragraph in its entirety"
++#
+ %ENTRY% _LT_BSD_CLAUSE_2
+ %KEY% "copyright"
+ %STR% "redistributions? in binary form must reproduc[et] the (above |original author.s )?copyright notice this list of conditions and the following disclaimer (listed in this license )?in the documentation and ?/or other materials provided with the distribution"
+ #
++%ENTRY% _LT_BSD_SHORTENED_CLAUSE_2
++%KEY% "copyright"
++%STR% "distributions? including binary code include the above copyright notice and this paragraph in its entirety in the documentation or other materials provided with the distribution and"
++#
+ %ENTRY% _LT_BSD_CLAUSE_3
+ %KEY% "software"
+-%STR% "all advertising materials mentioning features or use of this software must display the following acknowledgement"
++%STR% "all advertising materials mentioning features or use of this software (must )?display the following acknowledgement"
+ #
+ %ENTRY% _LT_BSD_CLAUSE_4
+ %KEY% "software"
+diff --git a/src/nomos/agent/parse.c b/src/nomos/agent/parse.c
+index 09b2f2575..c91b067c2 100755
+--- a/src/nomos/agent/parse.c
++++ b/src/nomos/agent/parse.c
+@@ -687,6 +687,9 @@ char *parseLicenses(char *filetext, int size, scanres_t *scp,
+       else if (INFILE(_CR_CRYPTOGAMS)) {
+         INTERESTING("Cryptogams");
+       }
++      else if (INFILE(_LT_BSD_SHORTENED_CLAUSE_0) && INFILE(_LT_BSD_SHORTENED_CLAUSE_1) && INFILE(_LT_BSD_SHORTENED_CLAUSE_2) && INFILE(_LT_BSD_CLAUSE_3)) {
++        INTERESTING("BSD-4-Clause-Shortened");
++      }
+       else if (INFILE(_CR_BSDCAL)) {
+         INTERESTING(lDebug ? "BSD(1)" : "BSD");
+       }
+-- 
+2.39.2
+

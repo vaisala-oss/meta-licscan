@@ -1,0 +1,41 @@
+From 6e668840288b1f5018686b8b3c921712b532fa82 Mon Sep 17 00:00:00 2001
+From: SvetaInChina <Huaying.Liu@mediatek.com>
+Date: Thu, 10 Mar 2022 22:10:33 +0800
+Subject: [PATCH]  fix(nomos): Improved nomos GPL detection
+
+---
+ src/nomos/agent/STRINGS.in | 4 ++++
+ src/nomos/agent/parse.c    | 2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/nomos/agent/STRINGS.in b/src/nomos/agent/STRINGS.in
+index 864b7821c..9684ffc91 100755
+--- a/src/nomos/agent/STRINGS.in
++++ b/src/nomos/agent/STRINGS.in
+@@ -5094,6 +5094,10 @@
+ %KEY% =NULL=
+ %STR% "with exceptions as appearing in the file LICENSE\.GPL3-EXCEPT"
+ #
++%ENTRY% _LT_OPENBSD_GPL_EXCEPTION
++%KEY% =NULL=
++%STR% "contribute changes back to the authors under this freer than gpl license"
++#
+ %ENTRY% _LT_QUEST_EULA
+ %KEY% "so(ftware|urce)"
+ %STR% "this agreement the agreement is made between quest software inc Quest and you the customer licen[cs]ee"
+diff --git a/src/nomos/agent/parse.c b/src/nomos/agent/parse.c
+index 09b2f2575..5c7123326 100755
+--- a/src/nomos/agent/parse.c
++++ b/src/nomos/agent/parse.c
+@@ -8461,7 +8461,7 @@ char *gplVersion(char *filetext, int size, int isML, int isPS)
+     }
+     kludge.base = NULL_STR;
+   }
+-  if (lstr == NULL_STR && NOT_INFILE(_PHR_JYTHON_NOTGPL) && !HASTEXT(_TITLE_QT_GPL_EXCEPTION_10, 0)) {
++  if (lstr == NULL_STR && NOT_INFILE(_PHR_JYTHON_NOTGPL) && !HASTEXT(_TITLE_QT_GPL_EXCEPTION_10, 0) && !HASTEXT(_LT_OPENBSD_GPL_EXCEPTION, 0)) {
+     lstr = lDebug ? "GPL(NULL)" : "GPL";
+   }
+   return lstr;
+-- 
+2.39.2
+

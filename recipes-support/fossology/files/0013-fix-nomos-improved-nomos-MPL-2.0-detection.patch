@@ -1,0 +1,64 @@
+From d90541903a7d2942a85c57127944b09081830561 Mon Sep 17 00:00:00 2001
+From: Anupam Ghosh <anupam.ghosh@siemens.com>
+Date: Thu, 27 May 2021 12:37:47 +0530
+Subject: [PATCH] fix(nomos): improved nomos MPL-2.0 detection
+
+Signed-off-by: Anupam Ghosh <anupam.ghosh@siemens.com>
+---
+ src/nomos/agent/STRINGS.in | 8 ++++++--
+ src/nomos/agent/parse.c    | 6 +++++-
+ 2 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/src/nomos/agent/STRINGS.in b/src/nomos/agent/STRINGS.in
+index b2fb01c24..320ad725a 100755
+--- a/src/nomos/agent/STRINGS.in
++++ b/src/nomos/agent/STRINGS.in
+@@ -12209,6 +12209,10 @@ k
+ %KEY% "(\<gnu|free\>|l?gpl)"
+ %STR% "(lesser|library) (gpl|general public licen[cs]e)"
+ #
++%ENTRY% _TEXT_MPLV2
++%KEY% "licen[cs]"
++%STR% "MPL.?([\/ -])?2(\.?0)?"
++#
+ %ENTRY% _TEXT_LICSET
+ %KEY% "licen[cs]"
+ %STR% "(these licen[cs]es|this licen[cs]e set|set of licen[cs]es)"
+@@ -12722,7 +12726,7 @@ k
+ #
+ %ENTRY% _URL_MPL_LATEST
+ %KEY% "\<([mn]pl|mozilla|netscape)\>"
+-%STR% "w?w?w?\.?mozilla\.?org/[MN]PL/ "
++%STR% "w?w?w?\.?mozilla\.?org/[MN]PL/"
+ #
+ %ENTRY% _URL_MPL10
+ %KEY% "\<([mn]pl|mozilla|netscape)\>"
+@@ -12734,7 +12738,7 @@ k
+ #
+ %ENTRY% _URL_MPL20
+ %KEY% "\<([mn]pl|mozilla|netscape)\>"
+-%STR% "w?w?w?\.?mozilla\.?org/[MN]PL/MPL-2\.?0"
++%STR% "w?w?w?\.?mozilla\.?org/[MN]PL/(MPL-)?2\.?0"
+ #
+ %ENTRY% _URL_MulanPSL
+ %KEY% "licen[cs]"
+diff --git a/src/nomos/agent/parse.c b/src/nomos/agent/parse.c
+index 0f6cace05..80bba7871 100755
+--- a/src/nomos/agent/parse.c
++++ b/src/nomos/agent/parse.c
+@@ -6831,7 +6831,11 @@ char *parseLicenses(char *filetext, int size, scanres_t *scp,
+   }
+   cleanLicenceBuffer();
+   /* Mozilla Public License possibility */
+-  if (!lmem[_mMPL] && URL_INFILE(_URL_MPL_LATEST)) {
++  if (!lmem[_mMPL] && INFILE(_TEXT_MPLV2) && INFILE(_URL_MPL20)) {
++      INTERESTING("MPL-2.0");
++      lmem[_mMPL] = 1;
++  }
++  else if (!lmem[_mMPL] && URL_INFILE(_URL_MPL_LATEST)) {
+     INTERESTING(lDebug ? "MPL(latest)" : "MPL");
+   }
+   cleanLicenceBuffer();
+-- 
+2.39.2
+

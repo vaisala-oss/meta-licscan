@@ -1,0 +1,144 @@
+From d5d56f7c29650a9dbdadffe70f98fbd43518693a Mon Sep 17 00:00:00 2001
+From: Gaurav Mishra <mishra.gaurav@siemens.com>
+Date: Fri, 25 Sep 2020 17:55:26 +0530
+Subject: [PATCH] fix(gcc-10): Fix errors and warnings
+
+Nomos and monk: Make shared variables are extern
+Others: Fix string warnings
+
+Signed-off-by: Gaurav Mishra <mishra.gaurav@siemens.com>
+---
+
+diff --git a/src/nomos/agent/doctorBuffer_utils.c b/src/nomos/agent/doctorBuffer_utils.c
+index ee4bb1071..ee06c2bbe 100644
+--- a/src/nomos/agent/doctorBuffer_utils.c
++++ b/src/nomos/agent/doctorBuffer_utils.c
+@@ -379,7 +379,7 @@ void convertWhitespaceToSpaceAndRemoveSpecialChars(char* buf, int isCR )
+     case '<':
+       if (strncasecmp(cp, "<string", 7) == 0)
+       {
+-        (void) strncpy(cp, "          ", 7);
++        (void) memcpy(cp, "       ", 7 * sizeof(char));
+       }
+       break;
+       /* CDB - Big #ifdef 0 left out */
+diff --git a/src/nomos/agent/nomos.c b/src/nomos/agent/nomos.c
+index 7f6b8e9cf..1cc4a64b0 100644
+--- a/src/nomos/agent/nomos.c
++++ b/src/nomos/agent/nomos.c
+@@ -37,6 +37,11 @@ extern licText_t licText[]; /* Defined in _autodata.c */
+ struct globals gl;
+ struct curScan cur;
+ 
++char debugStr[myBUFSIZ];
++char dbErrString[myBUFSIZ];
++
++size_t hashEntries;
++
+ int schedulerMode = 0; /**< Non-zero when being run from scheduler */
+ int Verbose = 0; /**< Verbosity level */
+ 
+@@ -195,7 +195,7 @@ void list_dir (const char * dir_name, int process_count, int *distribute_count,
+         list_dir(filename_buf, process_count, distribute_count, pFile); // deep into this directory and travel it
+       }
+       else {
+-        sprintf(filename_buf, "%s\n", filename_buf); // add one new line character by the end of one file path, one line is one file path
++        strncat(filename_buf, "\n", PATH_MAX - 1); // add one new line character by the end of one file path, one line is one file path
+         /* write on average process_count */
+         file_number = *distribute_count%process_count;
+         fwrite (filename_buf, sizeof(char), strlen(filename_buf), pFile[file_number]);
+diff --git a/src/nomos/agent/nomos.h b/src/nomos/agent/nomos.h
+index 65b61aeac..f66f68807 100644
+--- a/src/nomos/agent/nomos.h
++++ b/src/nomos/agent/nomos.h
+@@ -80,6 +80,7 @@
+ #ifndef	_GNU_SOURCE
+ #define	_GNU_SOURCE
+ #endif	/* not defined _GNU_SOURCE */
++#include <glib.h>
+ #include <stdio.h>
+ #include <assert.h>
+ #include <stdlib.h>
+@@ -112,8 +113,6 @@
+ #include <libfossdbmanager.h>
+ #endif
+ 
+-#include <glib.h>
+-
+ /**
+  * To use our local version of debug-malloc(), compile -DMEMORY_TRACING
+  */
+@@ -152,11 +151,11 @@
+ #define OPTS_NO_HIGHLIGHTINFO 0x10
+ #define OPTS_JSON_OUTPUT 0x20
+ 
+-char debugStr[myBUFSIZ];        ///< Debug string
+-char dbErrString[myBUFSIZ];     ///< DB error string
+-char saveLics[myBUFSIZ];        ///< License string
++extern char debugStr[myBUFSIZ];        ///< Debug string
++extern char dbErrString[myBUFSIZ];     ///< DB error string
++extern char saveLics[myBUFSIZ];        ///< License string
+ 
+-size_t hashEntries;             ///< Hash entries
++extern size_t hashEntries;             ///< Hash entries
+ 
+ /**
+   Flags for program control
+diff --git a/src/nomos/agent/nomos_regex.c b/src/nomos/agent/nomos_regex.c
+index b7dbb0f7f..7d65e09c8 100644
+--- a/src/nomos/agent/nomos_regex.c
++++ b/src/nomos/agent/nomos_regex.c
+@@ -37,6 +37,7 @@
+ static char regexErrbuf[myBUFSIZ];
+ 
+ regex_t idx_regc[NFOOTPRINTS];
++regex_t regc[NFOOTPRINTS];
+ 
+ /**
+  * \brief Log an error caused by regex
+diff --git a/src/nomos/agent/nomos_regex.h b/src/nomos/agent/nomos_regex.h
+index 0ddd31521..11ed1c5b0 100644
+--- a/src/nomos/agent/nomos_regex.h
++++ b/src/nomos/agent/nomos_regex.h
+@@ -25,7 +25,7 @@
+ #include "util.h"
+ #include "_autodefs.h"
+ 
+-regex_t regc[NFOOTPRINTS];
++extern regex_t regc[NFOOTPRINTS];
+ 
+ void regexError(int ret, regex_t *regc, char *regex);
+ int endsIn(char *s, char *suffix);
+diff --git a/src/nomos/agent/nomos_utils.c b/src/nomos/agent/nomos_utils.c
+index 477e56ae9..546287dcc 100644
+--- a/src/nomos/agent/nomos_utils.c
++++ b/src/nomos/agent/nomos_utils.c
+@@ -30,6 +30,8 @@
+  * \brief Utilities used by nomos
+  */
+ 
++char saveLics[myBUFSIZ];
++
+ /**
+  \brief Add a new license to license_ref table
+ 
+@@ -60,7 +64,7 @@ FUNCTION long add2license_ref(char *licenseName)
+   LOG_WARNING("Does license name %s have multibyte encoding?", licenseName)
+ 
+   /* verify the license is not already in the table */
+-  sprintf(query, "SELECT rf_pk FROM " LICENSE_REF_TABLE " where rf_shortname='%s'", escLicName);
++  snprintf(query, myBUFSIZ - 1, "SELECT rf_pk FROM " LICENSE_REF_TABLE " where rf_shortname='%s'", escLicName);
+   result = PQexec(gl.pgConn, query);
+   if (fo_checkPQresult(gl.pgConn, result, query, __FILE__, __LINE__))
+     return 0;
+@@ -76,7 +80,7 @@ FUNCTION long add2license_ref(char *licenseName)
+   /* Insert the new license */
+   specialLicenseText = "License by Nomos.";
+ 
+-  sprintf(insert, "insert into license_ref(rf_shortname, rf_text, rf_detector_type) values('%s', '%s', 2)", escLicName,
++  snprintf(insert, myBUFSIZ - 1, "insert into license_ref(rf_shortname, rf_text, rf_detector_type) values('%s', '%s', 2)", escLicName,
+       specialLicenseText);
+   result = PQexec(gl.pgConn, insert);
+   // ignore duplicate constraint failure (23505), report others
+-- 
+2.39.2

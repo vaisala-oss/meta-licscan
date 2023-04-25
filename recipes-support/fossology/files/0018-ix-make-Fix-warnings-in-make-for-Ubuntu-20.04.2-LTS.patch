@@ -1,0 +1,31 @@
+From 13fb71910b8e019efd24058a304618595bcf5e2f Mon Sep 17 00:00:00 2001
+From: Avinal Kumar <avinal.xlvii@gmail.com>
+Date: Mon, 6 Jun 2022 14:32:12 +0530
+Subject: [PATCH] ix(make): Fix warnings in make for Ubuntu 20.04.2 LTS
+
+Signed-off-by: Avinal Kumar <avinal.xlvii@gmail.com>
+---
+
+diff --git a/src/nomos/agent/nomos.c b/src/nomos/agent/nomos.c
+index 1cc4a64b0..c61e982c9 100644
+--- a/src/nomos/agent/nomos.c
++++ b/src/nomos/agent/nomos.c
+@@ -310,13 +310,13 @@ int main(int argc, char **argv)
+   /* Record the progname name */
+   if ((cp = strrchr(*argv, '/')) == NULL_STR)
+   {
+-    strncpy(gl.progName, *argv, sizeof(gl.progName));
++    strncpy(gl.progName, *argv, sizeof(gl.progName)-1);
+   }
+   else
+   {
+     while (*cp == '.' || *cp == '/')
+       cp++;
+-    strncpy(gl.progName, cp, sizeof(gl.progName));
++    strncpy(gl.progName, cp, sizeof(gl.progName)-1);
+   }
+ 
+   if (putenv("LANG=C") < 0)
+-- 
+2.39.2
+
