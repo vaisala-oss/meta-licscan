@@ -9,7 +9,7 @@ args = None
 bbenv = None
 json_data = {}
 retval = 0
-version = '4.4.1'
+version = '4.4.2'
 
 
 # param1: string <key>: A bitbake variable string (e.g. 'BBLAYERS')
@@ -453,7 +453,7 @@ if __name__ == '__main__':
                 if 'SPDXMapped_LICENSE:' + pkg in json_data[pn]['packageInformation']:
                     print('%s%s' % (row_lbl, ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE:' + pkg])))
                 elif 'LICENSE:' + pkg in json_data[pn]['packageInformation']:
-                    print('%s' % (row_lbl, ''.join(json_data[pn]['packageInformation']['LICENSE:' + pkg])))
+                    print('%s%s' % (row_lbl, ''.join(json_data[pn]['packageInformation']['LICENSE:' + pkg])))
             print('  License scan results file  : %s' % (os.path.basename(image_json_file) if image_json_file
                                                          is not None else "file://" + jsondir + '/' + pn + '.json'))
             print('  Scanned vs. ignored files  : %u vs. %u' % (scanned_file_count, ignored_file_count))
