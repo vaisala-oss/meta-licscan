@@ -114,11 +114,11 @@ def add_to_dict(d, dict_root, sub, key, value):
             dict_root[key].append(value)
 
 
-def communicate(d, command):
+def licscan_communicate(d, command):
     import subprocess
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     stdout, stderr = p.communicate()
-    if p.returncode != 0 or stderr != '':
+    if p.returncode != 0 or stderr != '' or stdout == '':
         bb.fatal("Command '%s' returned %d\nStdout was: '%s'\nStderr was: '%s'"
                  % (command, p.returncode, stdout, stderr))
     return stdout
@@ -249,7 +249,7 @@ python do_licscan() {
 
         if scanner == 'nomossa':
             def communicate_nomossa(scan_file):
-                return (communicate(d, scan_file[0])[2:-2].replace('"', ''), scan_file[1])
+                return (licscan_communicate(d, scan_file[0])[2:-2].replace('"', ''), scan_file[1])
 
             results = oe.utils.multiprocess_launch(communicate_nomossa, scan_files, d)
             for (result, path) in results:
@@ -261,7 +261,7 @@ python do_licscan() {
         if 'scannedFiles' in dict_root:
             add_to_dict(d, dict_root, 'scanInformation', 'scannerBaseCommand', cmd_base.strip())
             add_to_dict(d, dict_root, 'scanInformation', 'scannerVersion',
-                        communicate(d, shlex.split(d.getVarFlag('LICSCAN_VERSION_COMMAND', scanner))).strip())
+                        licscan_communicate(d, shlex.split(d.getVarFlag('LICSCAN_VERSION_COMMAND', scanner))).strip())
             add_to_dict(d, dict_root, 'scanInformation', 'jsonStructureVersion',
                         d.getVar('LICSCAN_JSON_STRUCTURE_VERSION'))
 
