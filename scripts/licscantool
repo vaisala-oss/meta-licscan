@@ -8,7 +8,7 @@ import sys
 args = None
 bbenv = None
 json_data = {}
-version = '4.5.0'
+version = '4.5.1'
 warnings = False
 
 
@@ -280,8 +280,8 @@ if __name__ == '__main__':
         # Resolve manifest file
         if bbenv is not None:
             dir = bitbake_value_of('DEPLOY_DIR_IMAGE')
-            link = bitbake_value_of('IMAGE_LINK_NAME') + '.manifest'
-            manifest = dir + '/' + link
+            filename = bitbake_value_of('IMAGE_NAME') + bitbake_value_of('IMAGE_NAME_SUFFIX') + '.manifest'
+            manifest = dir + '/' + filename
         else:
             manifest = os.path.realpath(image_json_file.replace('.licscan.json', '.manifest'))
 
@@ -291,8 +291,7 @@ if __name__ == '__main__':
                            (manifest, ''.join(args.image)))
             else:
                 error_exit("Cannot use %s without %s" % (image_json_file, manifest))
-        elif bbenv is not None and not os.path.islink(manifest):
-            error_exit('Manifest file %s found but for some reason it is not a symbolic link?' % manifest)
+
         manifest = os.path.realpath(manifest)
         if args.verbose:
             print("Manifest file is %s" % (os.path.basename(manifest) if image_json_file else "file://" + manifest))

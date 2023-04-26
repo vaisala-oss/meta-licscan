@@ -445,17 +445,13 @@ python generate_image_licscan_files() {
                 bb.warn("Cannot find .json results file for '%s' package. Image specific .json results file will "
                         "be incomplete." % package_name)
 
-    # Store image specific licscan results file, along with an agnostically named symlink to it
+    # Store image specific licscan results file
     results_file = os.path.join(deploy_dir, "%s%s.licscan.json" %
                                 (d.getVar('IMAGE_NAME'), d.getVar('IMAGE_NAME_SUFFIX')))
-    results_link = os.path.join(deploy_dir, "%s.licscan.json" % d.getVar('IMAGE_LINK_NAME'))
     bb.utils.mkdirhier(os.path.dirname(results_file))
     with open(results_file, 'w') as outputfile:
         outputfile.write(json.dumps(json_data_out, indent=4, sort_keys=True))
         outputfile.write('\n')
-    if os.path.lexists(results_link):
-        os.remove(results_link)
-    os.symlink(os.path.basename(results_file), results_link)
 
     # Finally create analysis file too
     import subprocess
@@ -468,12 +464,8 @@ python generate_image_licscan_files() {
                  % (command, p.returncode, stdout.strip(), stderr.strip()))
     licscantool_output = os.path.join(deploy_dir, "%s%s.licscantool.txt" %
                                       (d.getVar('IMAGE_NAME'), d.getVar('IMAGE_NAME_SUFFIX')))
-    licscantool_link = os.path.join(deploy_dir, "%s.licscantool.txt" % d.getVar('IMAGE_LINK_NAME'))
     with open(licscantool_output, 'w') as outputfile:
         outputfile.write(stdout)
         outputfile.write(stderr)
-    if os.path.lexists(licscantool_link):
-        os.remove(licscantool_link)
-    os.symlink(os.path.basename(licscantool_output), licscantool_link)
 }
 IMAGE_POSTPROCESS_COMMAND:append = " generate_image_licscan_files ;"
