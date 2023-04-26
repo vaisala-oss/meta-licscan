@@ -80,15 +80,6 @@ For instance in order to scan only coreutils and util-linux source code:
 
     LICSCAN_RECIPES = "coreutils util-linux"
 
-### Allowing incomplete image-specific results file
-
-Note also that image specific .json generation will fail if all necessary recipe-specific licscan .json files are not available.
-This can be avoided by declaring
-
-    LICSCAN_INCOMPLETE_IMAGE_JSON_WARN_ONLY = "yes"
-
-in `<BUILDDIR>`/conf/local.conf in which case each missing .json file produces mere bitbake warning about incomplete image specific .json instead.
-
 ## IV. Studying license analysis results
 
 A command line method for studying license analysis results is provided by using `licscantool` program.

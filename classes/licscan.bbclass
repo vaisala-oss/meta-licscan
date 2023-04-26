@@ -1,5 +1,4 @@
 LICSCAN_CACHE_DIR ?= "${TMPDIR}/work-shared/licscan/${PN}"
-LICSCAN_INCOMPLETE_IMAGE_JSON_WARN_ONLY ??= "no"
 LICSCAN_JSON_STRUCTURE_VERSION = "9"
 LICSCAN_RECIPES ??= ""
 LICSCAN_SCANNERS ??= "nomossa"
@@ -446,12 +445,8 @@ python generate_image_licscan_files() {
                              "while licscan json has '%s'" % (recipe_name, pkgv, json_pkgv))
                 json_data_out.setdefault(recipe_name, json_data_in[recipe_name])
             else:
-                if oe.types.boolean(d.getVar('LICSCAN_INCOMPLETE_IMAGE_JSON_WARN_ONLY')):
-                    bb.warn("Cannot find .json results file for '%s' package. Image specific .json results file will "
-                            "be incomplete." % package_name)
-                else:
-                    bb.fatal("Cannot assemble image specific .json results file because required .json results file "
-                             "for '%s' package was not found." % package_name)
+                bb.warn("Cannot find .json results file for '%s' package. Image specific .json results file will "
+                        "be incomplete." % package_name)
 
     # Store image specific licscan results file, along with an agnostically named symlink to it
     results_file = os.path.join(deploy_dir, "%s%s.licscan.json" %
@@ -471,7 +466,7 @@ python generate_image_licscan_files() {
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          shell=True, universal_newlines=True, env={"COLUMNS": "240", "PATH": d.getVar('PATH')})
     stdout, stderr = p.communicate()
-    if p.returncode != 0 or stderr != '':
+    if p.returncode != 0:
         bb.fatal("Command '%s' returned %d\nStdout was: '%s'\nStderr was: '%s'"
                  % (command, p.returncode, stdout.strip(), stderr.strip()))
     licscantool_output = os.path.join(deploy_dir, "%s%s.licscantool.txt" %
@@ -479,6 +474,7 @@ python generate_image_licscan_files() {
     licscantool_link = os.path.join(deploy_dir, "%s.licscantool.txt" % d.getVar('IMAGE_LINK_NAME'))
     with open(licscantool_output, 'w') as outputfile:
         outputfile.write(stdout)
+        outputfile.write(stderr)
     if os.path.lexists(licscantool_link):
         os.remove(licscantool_link)
     os.symlink(os.path.basename(licscantool_output), licscantool_link)

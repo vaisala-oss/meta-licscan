@@ -8,8 +8,8 @@ import sys
 args = None
 bbenv = None
 json_data = {}
-retval = 0
-version = '4.4.2'
+version = '4.5.0'
+warnings = False
 
 
 # param1: string <key>: A bitbake variable string (e.g. 'BBLAYERS')
@@ -223,7 +223,7 @@ if __name__ == '__main__':
 
     if args.full and not args.image:
         warn_noexit('-f option has effect only when used together with -i')
-        retval = 2
+        warnings = True
 
     if args.version:
         print(version_desc)
@@ -359,10 +359,11 @@ if __name__ == '__main__':
                         else:
                             licfile = 'file://' + ''.join(args.image)
                 else:
-                    # No matching scan result json file found, print a warning.
+                    pn = 'NOT_FOUND'
+                    recipelics = '(missing)'
+                    scannedlics = '(missing)'
                     warn_noexit("Failed to find matching json entry for package '%s'" % pkg)
-                    retval = 3
-                    continue
+                    warnings = True
 
                 width_max_recipelics = (len(recipelics) if len(recipelics) > width_max_recipelics else
                                         width_max_recipelics)
@@ -399,7 +400,8 @@ if __name__ == '__main__':
         for pkg in pkgs_array:
             pn = map_package_to_recipe(pkg)
             if not pn:
-                error_exit('No matching scan result json file found for package %s' % pkg)
+                warn_noexit("Failed to find matching json entry for package '%s'" % pkg)
+                warnings = True
             pn_pkg_map.append([pn, pkg])
             if pn not in recipes:
                 recipes.append(pn)
@@ -429,9 +431,9 @@ if __name__ == '__main__':
                 rows, columns = os.popen('stty size', 'r').read().split()
 
             # grab statistics
-            recipe_licenses = licenses_for(pn)
-            scanned_file_count = count_of_files_scanned(pn)
-            ignored_file_count = count_of_files_ignored(pn)
+            recipe_licenses = licenses_for(pn) if pn else []
+            scanned_file_count = count_of_files_scanned(pn) if pn else 0
+            ignored_file_count = count_of_files_ignored(pn) if pn else 0
             total_file_count = scanned_file_count + ignored_file_count
             if total_file_count > 0:
                 scanned_file_ratio = scanned_file_count / total_file_count
@@ -439,18 +441,22 @@ if __name__ == '__main__':
                 ignored_file_percent = 100 - scanned_file_percent
 
             # display statistics
-            print('  Recipe version             : %s' % version_for(pn))
-            print('  Recipe providing package   : %s' % pn)
-            print('  Recipe summary information : %s' % ''.join(json_data[pn]['packageInformation']['SUMMARY']))
+            print('  Recipe version             : %s' % (version_for(pn) if pn else '(missing)'))
+            print('  Recipe providing package   : %s' % (pn if pn else 'NOT_FOUND'))
+            print('  Recipe summary information : %s' % (''.join(json_data[pn]['packageInformation']['SUMMARY']) if pn else '(missing)'))
             print('  Recipe SPDX license        : ', end='')
-            if 'SPDXMapped_LICENSE' in json_data[pn]['packageInformation']:
+            if not pn:
+                print('(missing)')
+            elif 'SPDXMapped_LICENSE' in json_data[pn]['packageInformation']:
                 print('%s' % ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE']))
             else:
                 print('%s' % ''.join(json_data[pn]['packageInformation']['LICENSE']))
             for pkg in pkgs:
                 # Print package specific license(s), if found, for each studied package. Prefer SPDX mapped format.
                 row_lbl = '  %-27s: ' % (pkg + ' SPDX license')
-                if 'SPDXMapped_LICENSE:' + pkg in json_data[pn]['packageInformation']:
+                if not pn:
+                    print('%s(missing)' % row_lbl)
+                elif 'SPDXMapped_LICENSE:' + pkg in json_data[pn]['packageInformation']:
                     print('%s%s' % (row_lbl, ''.join(json_data[pn]['packageInformation']['SPDXMapped_LICENSE:' + pkg])))
                 elif 'LICENSE:' + pkg in json_data[pn]['packageInformation']:
                     print('%s%s' % (row_lbl, ''.join(json_data[pn]['packageInformation']['LICENSE:' + pkg])))
@@ -469,6 +475,9 @@ if __name__ == '__main__':
                     label_ignored = '  Ignored files %-10s : ' % ('(' + reason + ')' + ' ' * (10 - len(reason)))
                     print('%s' % label_ignored, end='')
                     print_in_column(list, len(label_ignored), int(columns), 0)
+
+            if not pn:
+                continue
 
             print('  ')
 
@@ -501,4 +510,5 @@ if __name__ == '__main__':
                              len(i[2]) + len('  '))
                 print_in_column(i[3], first_index, int(columns), lic_index)
 
-    sys.exit(retval)
+    if warnings:
+        warn_noexit("There were warnings, please check the output for details")
