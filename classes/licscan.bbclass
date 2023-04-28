@@ -1,5 +1,4 @@
 LICSCAN_CACHE_DIR ?= "${TMPDIR}/work-shared/licscan/${PN}"
-LICSCAN_JSON_STRUCTURE_VERSION = "9"
 LICSCAN_RECIPES ??= ""
 LICSCAN_SCANNERS ??= "nomossa"
 LICSCAN_SKIP_PN_PREFIX ??= ""
@@ -262,8 +261,6 @@ python do_licscan() {
             add_to_dict(d, dict_root, 'scanInformation', 'scannerBaseCommand', cmd_base.strip())
             add_to_dict(d, dict_root, 'scanInformation', 'scannerVersion',
                         licscan_communicate(d, shlex.split(d.getVarFlag('LICSCAN_VERSION_COMMAND', scanner))).strip())
-            add_to_dict(d, dict_root, 'scanInformation', 'jsonStructureVersion',
-                        d.getVar('LICSCAN_JSON_STRUCTURE_VERSION'))
 
         # Sort entries for improved readability and inter-version comparability
         for key in dict_root.keys():
