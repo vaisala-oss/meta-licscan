@@ -6,7 +6,7 @@ Please see the corresponding sections below for details.
 ### Dependencies
 
 URI: [git://git.yoctoproject.org/poky](https://git.yoctoproject.org/cgit/cgit.cgi/poky)<br>
-branch: gatesgarth
+branch: kirkstone
 
 ### Contributing
 
@@ -33,6 +33,8 @@ This meta layer is a complementary facility for disambiguating software license 
 It facilitates generation of .json files containing both source code license analysis results (on a per-file basis) as well as relevant parts of Yocto metadata related to prementioned software artifacts.
 
 A command line utility for studying image-wide and package-specific license analysis results from prementioned .json files is also provided.
+
+There is no warranty of any kind for any feature or functionality provided by this layer.
 
 ## II. Host OS requirements
 
@@ -98,6 +100,6 @@ Example 2. Studying package-specific results
 
 Example 3. Show comprehensive image-specific results (combined information about an image and all packages it contains) from image-specific licscan.json and manifest files
 
-    ../meta-licscan/scripts/licscantool -f -vvv -i path/to/<image_name>.licscan.json
+    ../meta-licscan/scripts/licscantool -f -v -i path/to/<image_name>.licscan.json
 
 Note that the first two examples resort to probing details from bitbake context while the last example doesn't (ie. Example 3 works also without sourcing oe-init-build-env first).
