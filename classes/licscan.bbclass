@@ -6,8 +6,6 @@ LICSCAN_SKIP_PN_SUFFIX ??= "-cross -initial"
 LICSCAN_SKIP_PN ??= "linux-libc-headers"
 LICSCAN_SKIP_INHERIT ??= "image"
 
-inherit image-artifact-names
-
 
 def should_scan_package(d):
     pn = d.getVar('PN')
