@@ -11,6 +11,9 @@ Subject: [PATCH] feat(licenses): SPDX identifier detection modified to include A
  - Dropped changes from commit unrelated to src/nomos/agent/ content
  - Include fix (5ab3fe8315c50f793982241942ef7b6c3a0cf0b3) to regression
    introduced by this commit
+
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/02059519020e14823386e86e1ff9b59cb9c4d4a1, https://github.com/fossology/fossology/commit/5ab3fe8315c50f793982241942ef7b6c3a0cf0b3]
+
 Signed-off-by: Niko Mauno <niko.mauno@iki.fi>
 
 diff --git a/src/nomos/agent/STRINGS.in b/src/nomos/agent/STRINGS.in

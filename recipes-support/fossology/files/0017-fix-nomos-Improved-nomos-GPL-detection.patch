@@ -3,6 +3,7 @@ From: SvetaInChina <Huaying.Liu@mediatek.com>
 Date: Thu, 10 Mar 2022 22:10:33 +0800
 Subject: [PATCH]  fix(nomos): Improved nomos GPL detection
 
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/6e668840288b1f5018686b8b3c921712b532fa82]
 ---
  src/nomos/agent/STRINGS.in | 4 ++++
  src/nomos/agent/parse.c    | 2 +-

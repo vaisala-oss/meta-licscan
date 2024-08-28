@@ -3,6 +3,7 @@ From: SvetaInChina <Huaying.Liu@mediatek.com>
 Date: Thu, 10 Mar 2022 20:14:02 +0800
 Subject: [PATCH] feat(nomos): add 'BSD-4-Clauset-Shortened' license
 
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/b816960547251eae88b9450e0079f114b7119de7]
 ---
  src/nomos/agent/STRINGS.in | 14 +++++++++++++-
  src/nomos/agent/parse.c    |  3 +++

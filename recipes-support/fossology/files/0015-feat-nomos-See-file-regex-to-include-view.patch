@@ -10,6 +10,8 @@ For example, "please view the LICENSE file" and "please see the LICENSE
 file" to be matched.
 
 Signed-off-by: Gaurav Mishra <mishra.gaurav@siemens.com>
+
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/df3573982b62886e5bda3fe1e393b453019e0081]
 ---
 
 diff --git a/src/nomos/agent/STRINGS.in b/src/nomos/agent/STRINGS.in

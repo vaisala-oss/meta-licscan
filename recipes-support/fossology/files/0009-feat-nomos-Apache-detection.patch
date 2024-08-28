@@ -11,6 +11,8 @@ Apache-2.0-nourl.txt (just removal of url made nomos fail in detecting
 actual license text).
 
 Signed-off-by: Gaurav Mishra <mishra.gaurav@siemens.com>
+
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/42ffc492fa8bc55845a168168dd04969afd772dd]
 ---
 
 diff --git a/src/nomos/agent/parse.c b/src/nomos/agent/parse.c

@@ -3,6 +3,8 @@ From: Tieg Zaharia <tieg@tidelift.com>
 Date: Wed, 17 Apr 2019 14:32:46 -0400
 Subject: [PATCH] fix(strings): correct typo
 
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/de64361f765a2d125a20f7a1c5c9be8f167114eb]
+
 ---
  src/nomos/agent/STRINGS.in | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)

@@ -7,6 +7,8 @@ Nomos and monk: Make shared variables are extern
 Others: Fix string warnings
 
 Signed-off-by: Gaurav Mishra <mishra.gaurav@siemens.com>
+
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/d5d56f7c29650a9dbdadffe70f98fbd43518693a]
 ---
 
 diff --git a/src/nomos/agent/doctorBuffer_utils.c b/src/nomos/agent/doctorBuffer_utils.c

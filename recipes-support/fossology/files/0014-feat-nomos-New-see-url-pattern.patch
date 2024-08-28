@@ -11,6 +11,8 @@ It will match string
 License: https://github.com/my-project/LICENSE
 
 Signed-off-by: Gaurav Mishra <mishra.gaurav@siemens.com>
+
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/44acd20295a7f62105c9546092a65c0595b74317]
 ---
  src/nomos/agent/STRINGS.in | 4 ++++
  src/nomos/agent/parse.c    | 2 +-

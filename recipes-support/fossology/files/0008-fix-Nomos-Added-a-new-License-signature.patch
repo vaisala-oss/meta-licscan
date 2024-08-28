@@ -5,6 +5,8 @@ Subject: [PATCH] fix(Nomos): Added a new License signature
 
 Signed-off-by: Sahil <sjha200000@gmail.com>
 
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/2fcbff0b1a87e3c4b6d708bc924c02294a6f026a]
+
 diff --git a/src/nomos/agent/STRINGS.in b/src/nomos/agent/STRINGS.in
 index 705c47c94..a94cb33ce 100755
 --- a/src/nomos/agent/STRINGS.in

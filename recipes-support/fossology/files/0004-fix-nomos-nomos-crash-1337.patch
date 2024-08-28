@@ -3,6 +3,8 @@ From: rlintu <raino.lintulampi@bittium.com>
 Date: Fri, 26 Apr 2019 10:53:56 +0300
 Subject: [PATCH] fix(nomos): nomos crash (#1337)
 
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/0c6d6474194c4cc90e19ed749dd3553e5c299b88]
+
 ---
  src/nomos/agent/nomos.h       | 2 +-
  src/nomos/agent/nomos_regex.c | 2 +-

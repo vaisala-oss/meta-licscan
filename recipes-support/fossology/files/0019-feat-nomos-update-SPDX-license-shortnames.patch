@@ -8,6 +8,8 @@ Make changes like
 - LGPL-2.1+ => LGPL-2.1-or-later
 
 Signed-off-by: Gaurav Mishra <mishra.gaurav@siemens.com>
+
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/c173a05ce89493f8e9c269ac96f692786f56cf96]
 ---
 
 diff --git a/src/nomos/agent/parse.c b/src/nomos/agent/parse.c

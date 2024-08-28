@@ -4,6 +4,8 @@ Date: Thu, 16 Jan 2020 17:15:22 +0530
 Subject: [PATCH] fix(nomos) : segfault for large offset value
 
 Signed-off-by: Anupam Ghosh <anupam.ghosh@siemens.com>
+
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/4c04b59bc372f030ed274e75203425da10270869]
 ---
  src/nomos/agent/parse.c | 10 +++++++---
  1 file changed, 7 insertions(+), 3 deletions(-)

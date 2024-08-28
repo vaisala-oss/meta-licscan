@@ -4,6 +4,8 @@ Subject: [PATCH] Makefile.sa: Relocate Makefile.conf
 
 Change effective reference in Makefile.sa to ./Makefile.conf
 
+Upstream-Status: Inappropriate [configuration]
+
 Signed-off-by: Niko Mauno <niko.mauno@iki.fi>
 
 --- a/Makefile.sa

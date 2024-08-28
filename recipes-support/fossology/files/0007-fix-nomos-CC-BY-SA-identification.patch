@@ -4,6 +4,8 @@ Date: Thu, 16 Jan 2020 17:37:49 +0530
 Subject: [PATCH] fix(nomos) : CC-BY-SA identification
 
 Signed-off-by: Anupam Ghosh <anupam.ghosh@siemens.com>
+
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/a1b287e06209ad3f3559e789f744130144f610fb]
 ---
  src/nomos/agent/STRINGS.in | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

@@ -4,6 +4,8 @@ Date: Thu, 27 May 2021 12:37:47 +0530
 Subject: [PATCH] fix(nomos): improved nomos MPL-2.0 detection
 
 Signed-off-by: Anupam Ghosh <anupam.ghosh@siemens.com>
+
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/d90541903a7d2942a85c57127944b09081830561]
 ---
  src/nomos/agent/STRINGS.in | 8 ++++++--
  src/nomos/agent/parse.c    | 6 +++++-

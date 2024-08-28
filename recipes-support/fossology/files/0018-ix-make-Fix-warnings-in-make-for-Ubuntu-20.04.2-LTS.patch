@@ -4,6 +4,8 @@ Date: Mon, 6 Jun 2022 14:32:12 +0530
 Subject: [PATCH] ix(make): Fix warnings in make for Ubuntu 20.04.2 LTS
 
 Signed-off-by: Avinal Kumar <avinal.xlvii@gmail.com>
+
+Upstream-Status: Backport [https://github.com/fossology/fossology/commit/13fb71910b8e019efd24058a304618595bcf5e2f]
 ---
 
 diff --git a/src/nomos/agent/nomos.c b/src/nomos/agent/nomos.c
