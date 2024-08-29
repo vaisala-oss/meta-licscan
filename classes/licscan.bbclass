@@ -446,8 +446,7 @@ python generate_image_licscan_files() {
                         "be incomplete." % package_name)
 
     # Store image specific licscan results file
-    results_file = os.path.join(deploy_dir, "%s%s.licscan.json" %
-                                (d.getVar('IMAGE_NAME'), d.getVar('IMAGE_NAME_SUFFIX')))
+    results_file = os.path.join(deploy_dir, "%s.licscan.json" % (d.getVar('IMAGE_NAME')))
     bb.utils.mkdirhier(os.path.dirname(results_file))
     with open(results_file, 'w') as outputfile:
         outputfile.write(json.dumps(json_data_out, indent=4, sort_keys=True))
@@ -462,8 +461,7 @@ python generate_image_licscan_files() {
     if p.returncode != 0:
         bb.fatal("Command '%s' returned %d\nStdout was: '%s'\nStderr was: '%s'"
                  % (command, p.returncode, stdout.strip(), stderr.strip()))
-    licscantool_output = os.path.join(deploy_dir, "%s%s.licscantool.txt" %
-                                      (d.getVar('IMAGE_NAME'), d.getVar('IMAGE_NAME_SUFFIX')))
+    licscantool_output = os.path.join(deploy_dir, "%s.licscantool.txt" % (d.getVar('IMAGE_NAME')))
     with open(licscantool_output, 'w') as outputfile:
         outputfile.write(stdout)
         outputfile.write(stderr)
