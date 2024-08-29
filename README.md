@@ -39,10 +39,9 @@ There is no warranty of any kind for any feature or functionality provided by th
 ## II. Host OS requirements
 
 Requires [python-magic](https://pypi.org/project/python-magic/) installed on host OS.
-The dependency can be satisfied e.g. with pip3 on Debian OS followingly
+The dependency can be satisfied e.g. on Debian OS followingly
 
-    sudo apt install python3-pip
-    sudo pip3 install python-magic
+    sudo apt install python3-magic
 
 ## III. Usage
 
