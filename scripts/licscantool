@@ -280,7 +280,7 @@ if __name__ == '__main__':
         # Resolve manifest file
         if bbenv is not None:
             dir = bitbake_value_of('DEPLOY_DIR_IMAGE')
-            filename = bitbake_value_of('IMAGE_NAME') + bitbake_value_of('IMAGE_NAME_SUFFIX') + '.manifest'
+            filename = bitbake_value_of('IMAGE_LINK_NAME') + '.manifest'
             manifest = dir + '/' + filename
         else:
             manifest = os.path.realpath(image_json_file.replace('.licscan.json', '.manifest'))
